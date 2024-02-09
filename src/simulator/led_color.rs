@@ -14,6 +14,10 @@ impl LedColor {
             blue: 0,
         }
     }
+
+    pub(crate) fn to_string(&self) -> String {
+        format!("#{:02X}{:02X}{:02X}", self.red, self.green, self.blue)
+    }
 }
 
 impl Into<u32> for LedColor {

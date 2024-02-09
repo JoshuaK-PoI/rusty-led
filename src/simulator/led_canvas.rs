@@ -1,10 +1,18 @@
+use std::path::Path;
+
 use super::LedColor;
 
 use minifb::{Window, WindowOptions};
 
+pub(crate) struct LedFont {
+    font: bdf::Font,
+}
 
-struct LedFont {
-    // ...
+impl LedFont {
+    pub fn new(bdf_file: &Path) -> Result<Self, &'static str> {
+        let font = bdf::open(bdf_file).map_err(|_| "Failed to open BDF font file")?;
+        Ok(Self { font })
+    }
 }
 
 pub(crate) trait LedCanvasTrait {
@@ -26,8 +34,6 @@ pub(crate) trait LedCanvasTrait {
     /// Consider using embedded-graphics for more drawing features.
     fn draw_line(&mut self, x0: i32, y0: i32, x1: i32, y1: i32, color: &LedColor);
 
-
-
     /// Draws a one pixel wide circle using the C++ library.
     ///
     /// Consider using embedded-graphics for more drawing features.
@@ -48,14 +54,13 @@ pub(crate) trait LedCanvasTrait {
         color: &LedColor,
         kerning_offset: i32,
         vertical: bool,
-    ) -> i32;
+    );
 }
 
 pub(crate) struct LedCanvas {
     pub(crate) width: u32,
     pub(crate) height: u32,
     pixel_buffer: Vec<u32>,
-
     window: Window, // minifb UI window
 }
 
@@ -63,33 +68,53 @@ const SCALE: u32 = 16; // Scales pixels to 16x - for 64 width this makes 1024 'r
 
 impl LedCanvas {
     pub fn new(height: u32, width: u32) -> Self {
-        let window = Window::new(
+        let mut window = Window::new(
             "LED Matrix Simulator",
             (width * SCALE) as usize,
             (height * SCALE) as usize,
             WindowOptions::default(),
-        ).expect("Unable to create window");
-        
+        )
+        .expect("Unable to create window");
+
+        window.limit_update_rate(Some(std::time::Duration::from_micros(16600))); // 60fps
+
         // Preallocate vector space for the pixels
         let mut pixel_buffer = Vec::with_capacity((height * width) as usize);
         for _ in 0..(height * width) {
             pixel_buffer.push(LedColor::zero().into());
         }
-        
+
         Self {
             height,
             width,
             pixel_buffer,
-            window
+            window,
         }
     }
 
+    pub(crate) fn width(&self) -> i32 {
+        self.width as i32
+    }
+
+    pub(crate) fn height(&self) -> i32 {
+        self.height as i32
+    }
+    
     pub(crate) fn flush_buffer(&mut self) {
-        self.window.update_with_buffer(&self.pixel_buffer, (self.width) as usize, (self.height) as usize)
+        // DEBUG:
+        println!("Buffer color: {}", &self.pixel_buffer[5]);
+
+        self.window
+            .update_with_buffer(
+                &self.pixel_buffer,
+                (self.width) as usize,
+                (self.height) as usize,
+            )
             .expect("Unable to update window");
+
+        self.window.update();
     }
 }
-
 
 impl LedCanvasTrait for LedCanvas {
     fn fill(&mut self, color: &LedColor) {
@@ -172,13 +197,42 @@ impl LedCanvasTrait for LedCanvas {
         &mut self,
         font: &LedFont,
         text: &str,
-        x: i32,
-        y: i32,
+        mut start_x: i32,
+        mut start_y: i32,
         color: &LedColor,
-        kerning_offset: i32,
+        mut kerning_offset: i32,
         vertical: bool,
-    ) -> i32 {
-        todo!()
-    }
+    ) {
+        kerning_offset = std::cmp::max(0, kerning_offset);
 
+        for c in text.chars() {
+            let glyph = font.font.glyphs().get(&c).unwrap();
+            let pixels = glyph.pixels();
+            for ((x, y), draw) in pixels {
+                if draw {
+                    if vertical {
+                        self.set(
+                            (x as i32 + start_x) % self.width as i32,
+                            (y as i32 + start_y) % self.height as i32,
+                            color,
+                        );
+                    } else {
+                        self.set(
+                            (x as i32 + start_x) % self.width as i32,
+                            (y as i32 + start_y) % self.height as i32,
+                            color,
+                        );
+                    }
+                }
+            }
+
+            if vertical {
+                start_y += glyph.height() as i32 + kerning_offset;
+                start_y %= self.height as i32;
+            } else {
+                start_x += glyph.width() as i32 + kerning_offset;
+                start_x %= self.width as i32;
+            }
+        }
+    }
 }

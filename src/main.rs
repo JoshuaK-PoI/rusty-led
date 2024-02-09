@@ -1,5 +1,8 @@
+use std::path::Path;
+
 #[cfg(target_os="linux")]
 use rpi_led_matrix::{LedMatrixOptions, LedRuntimeOptions, LedMatrix, LedColor};
+use simulator::led_canvas::LedFont;
 
 #[cfg(not(target_os="linux"))]
 mod simulator;
@@ -36,19 +39,27 @@ fn main() {
     // Set of colors
     let colors = vec![
         led_color!("#2EC866"),
-        led_color!("#003865"),
-        led_color!("#FF0000"),
+        led_color!("#2EF816"),
+        led_color!("#2EFA66"),
+        led_color!("#2EFC16"),
+        led_color!("#2EFE66"),
+        led_color!("#2EFE16"),
+        led_color!("#2EFE66"),
     ];
 
-    // busy loop
-    // cycle colors indefinitely
+    let font = LedFont::new(Path::new("fonts/6x10.bdf")).unwrap();
+    
     let mut i = 0;
+    let mut scroll_x: i32 = 0;
+    let mut scroll_y: i32 = 0;
+    let scroll_speed: i32 = 2;
+
     loop {
         let color = colors[i];
 
         // Draw a box outline with diagonals through the middle
         // and a circle in the center
-
+        // Offset the test pattern by i every iteration
         canvas.draw_line(0, 0, 63, 0, &color);
         canvas.draw_line(63, 0, 63, 31, &color);
         canvas.draw_line(63, 31, 0, 31, &color);
@@ -57,6 +68,15 @@ fn main() {
         canvas.draw_line(63, 0, 0, 31, &color);
         canvas.draw_circle(32, 16, 10, &color);
 
+        canvas.draw_text(
+            &font,
+            color.to_string().as_str(),
+            scroll_x,
+            scroll_y,
+            &led_color!("#2EC866"),
+            0,
+            false
+        );
 
         // @FIXME: 
         // Because the simulator uses a double buffer
@@ -71,11 +91,15 @@ fn main() {
         // For now, this 'flush_buffer' call is a workaround
         // to make the simulator work as expected.
         #[cfg(not(target_os="linux"))]
-        println!("Drawing color: {:?}", color);
-        #[cfg(not(target_os="linux"))]
         canvas.flush_buffer();
+        
+        scroll_x += scroll_speed;
+        scroll_x %= canvas.width();
 
-        std::thread::sleep(std::time::Duration::from_millis(250));
+        scroll_y += scroll_speed;
+        scroll_y %= canvas.height();
+
+        std::thread::sleep(std::time::Duration::from_millis(100));
         canvas.clear();
         i = (i + 1) % colors.len();
     }
