@@ -67,16 +67,14 @@ pub(crate) struct LedCanvas {
 const SCALE: u32 = 16; // Scales pixels to 16x - for 64 width this makes 1024 'real' pixels
 
 impl LedCanvas {
-    pub fn new(height: u32, width: u32) -> Self {
-        let mut window = Window::new(
+    pub(crate) fn new(height: u32, width: u32) -> Self {
+        let window = Window::new(
             "LED Matrix Simulator",
             (width * SCALE) as usize,
             (height * SCALE) as usize,
             WindowOptions::default(),
         )
         .expect("Unable to create window");
-
-        window.limit_update_rate(Some(std::time::Duration::from_micros(16600))); // 60fps
 
         // Preallocate vector space for the pixels
         let mut pixel_buffer = Vec::with_capacity((height * width) as usize);
@@ -92,18 +90,12 @@ impl LedCanvas {
         }
     }
 
-    pub(crate) fn width(&self) -> i32 {
-        self.width as i32
+    pub(crate) fn set_refresh_rate(&mut self, rate: std::time::Duration) {
+        self.window.limit_update_rate(Some(rate));
     }
 
-    pub(crate) fn height(&self) -> i32 {
-        self.height as i32
-    }
-    
+
     pub(crate) fn flush_buffer(&mut self) {
-        // DEBUG:
-        println!("Buffer color: {}", &self.pixel_buffer[5]);
-
         self.window
             .update_with_buffer(
                 &self.pixel_buffer,
@@ -111,7 +103,6 @@ impl LedCanvas {
                 (self.height) as usize,
             )
             .expect("Unable to update window");
-
         self.window.update();
     }
 }

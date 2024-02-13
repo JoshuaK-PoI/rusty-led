@@ -14,10 +14,6 @@ impl LedColor {
             blue: 0,
         }
     }
-
-    pub(crate) fn to_string(&self) -> String {
-        format!("#{:02X}{:02X}{:02X}", self.red, self.green, self.blue)
-    }
 }
 
 impl Into<u32> for LedColor {
@@ -33,5 +29,11 @@ impl From<u32> for LedColor {
             green: ((color >> 8) & 0xFF) as u8,
             blue: (color & 0xFF) as u8,
         }
+    }
+}
+
+impl Into<String> for LedColor {
+    fn into(self) -> String {
+        format!("#{:02X}{:02X}{:02X}", self.red, self.green, self.blue)
     }
 }

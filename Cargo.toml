@@ -7,6 +7,7 @@ edition = "2021"
 
 [dependencies]
 bdf = "0.6.0"
+chrono = "0.4.34"
 minifb = "0.25.0"
 # rpi-led-matrix = "0.4.0" -- TODO: Figure out how to prevent this from building on unsupported platforms, or make an adapter that prevents building
 
