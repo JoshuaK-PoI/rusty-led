@@ -1,10 +1,10 @@
 #[cfg(target_os = "linux")]
 use rpi_led_matrix::{LedColor, LedMatrix, LedMatrixOptions, LedRuntimeOptions};
 
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "macos", target_os = "windows"))]
 mod simulator;
 
-#[cfg(target_os = "macos")]
+#[cfg(any(target_os = "macos", target_os = "windows"))]
 use crate::simulator::{
     led_canvas::{LedCanvas, LedCanvasTrait, LedFont},
     LedColor, LedMatrix, LedMatrixOptions, LedRuntimeOptions,
@@ -25,7 +25,8 @@ fn main() {
     start_draw_loop(canvas);
 }
 
-#[cfg(target_os = "macos")]
+// Mac or windows
+#[cfg(any(target_os = "macos", target_os = "windows"))]
 fn main() {
     let canvas = setup();
     let pixel_buffer = canvas.pixel_buffer.clone();
