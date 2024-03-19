@@ -6,16 +6,11 @@ use crate::{
     },
 };
 
-struct Weather {
-    temperature: f64,
-    wind: f64,
-    humidity: f64,
-    condition: WeatherCondition,
-}
+pub(crate) mod api;
 
-const LATITUDE: f64 = 52.10;
-const LONGITUDE: f64 = 6.05;
+use serde::Deserialize;
 
+#[derive(Deserialize, Debug)]
 pub(crate) enum WeatherCondition {
     Unknown,
     ClearSky,

@@ -21,13 +21,13 @@ const REFRESH_RATE_MS: u32 = 500;
 #[cfg(target_os = "linux")]
 fn main() {
     let canvas = setup();
-
     start_draw_loop(canvas);
 }
 
-// Mac or windows
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 fn main() {
+    dotenv::dotenv().ok();
+
     let canvas = setup();
     let pixel_buffer = canvas.pixel_buffer.clone();
     let width = canvas.width as usize;
@@ -52,8 +52,12 @@ fn main() {
 fn start_draw_loop(mut canvas: LedCanvas) {
     std::thread::spawn(move || {
         let font_lg = LedFont::new(Path::new("fonts/6x12.bdf")).unwrap();
-        let font_sm = LedFont::new(Path::new("fonts/6x10.bdf")).unwrap();
+        let font_sm = LedFont::new(Path::new("fonts/5x8.bdf")).unwrap();
         let color = led_color!("#2EC866");
+
+        // @TODO: This needs to be run on a timeout in a separate thread
+        // to periodically re-fetch weather data
+        let weather = weather_api::api::get_api_details().expect("Unable to fetch weather");
 
         loop {
             canvas.clear();
@@ -63,11 +67,21 @@ fn start_draw_loop(mut canvas: LedCanvas) {
             let date = now.format("%a %b %e").to_string();
 
             canvas.draw_text(&font_lg, time.as_str(), 18, 0, &color, 0, false);
-            // weather_bounding_box(&mut canvas);
 
-            // Every 15 seconds, toggle between date display and weather display
             if now.second() % 30 > 14 {
-                canvas.draw_text(&font_sm, weather().as_str(), 2, 18, &color, 0, false);
+                canvas.draw_text(
+                    &font_sm,
+                    format!(
+                        "{}{}",
+                        weather.current.temperature_2m, weather.current_units.temperature_2m
+                    )
+                    .as_str(),
+                    2,
+                    18,
+                    &color,
+                    0,
+                    false,
+                );
             } else {
                 canvas.draw_text(&font_sm, date.as_str(), 2, 18, &color, 0, false);
             }
@@ -122,10 +136,6 @@ pub(crate) fn setup() -> LedCanvas {
     LedMatrix::new(Some(options), Some(rt_options))
         .unwrap()
         .offscreen_canvas()
-}
-
-fn weather() -> String {
-    format!("{}°C", "22.5")
 }
 
 fn weather_bounding_box(canvas: &mut LedCanvas, x: i32, y: i32, len: i32) {

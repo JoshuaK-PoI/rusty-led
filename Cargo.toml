@@ -4,9 +4,14 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+anyhow = "1.0.81"
 bdf = "0.6.0"
 chrono = "0.4.34"
+dotenv = "0.15.0"
 minifb = "0.25.0"
+reqwest = { version = "0.11.27", features = ["blocking"] }
+serde = { version = "1.0.197", features = ["derive"] }
+serde_json = "1.0.114"
 
 [target.'cfg(target_arch = "arm")'.dependencies.rpi-led-matrix]
 version = "0.4.0"
