@@ -3,6 +3,7 @@ use reqwest::blocking::Client;
 use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
+#[allow(dead_code)]
 pub(crate) struct WeatherApiResponse {
     pub(crate) latitude: f64,
     pub(crate) longitude: f64,
@@ -16,6 +17,7 @@ pub(crate) struct WeatherApiResponse {
 }
 
 #[derive(Deserialize, Debug)]
+#[allow(dead_code)]
 pub(crate) struct CurrentUnits {
     pub(crate) time: String,
     pub(crate) interval: String,
@@ -27,6 +29,7 @@ pub(crate) struct CurrentUnits {
 }
 
 #[derive(Deserialize, Debug)]
+#[allow(dead_code)]
 pub(crate) struct Current {
     pub(crate) time: String,
     pub(crate) interval: usize,
