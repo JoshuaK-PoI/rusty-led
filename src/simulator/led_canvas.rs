@@ -1,11 +1,12 @@
-use std::path::Path;
+use std::{
+    path::Path,
+    sync::{Arc, Mutex},
+};
 
 use super::LedColor;
 
-use minifb::{Window, WindowOptions};
-
 pub(crate) struct LedFont {
-    font: bdf::Font,
+    pub(crate) font: bdf::Font,
 }
 
 impl LedFont {
@@ -60,57 +61,35 @@ pub(crate) trait LedCanvasTrait {
 pub(crate) struct LedCanvas {
     pub(crate) width: u32,
     pub(crate) height: u32,
-    pixel_buffer: Vec<u32>,
-    window: Window, // minifb UI window
+    pub(crate) pixel_buffer: Arc<Mutex<Vec<u32>>>,
 }
-
-const SCALE: u32 = 16; // Scales pixels to 16x - for 64 width this makes 1024 'real' pixels
 
 impl LedCanvas {
     pub(crate) fn new(height: u32, width: u32) -> Self {
-        let window = Window::new(
-            "LED Matrix Simulator",
-            (width * SCALE) as usize,
-            (height * SCALE) as usize,
-            WindowOptions::default(),
-        )
-        .expect("Unable to create window");
-
         // Preallocate vector space for the pixels
-        let mut pixel_buffer = Vec::with_capacity((height * width) as usize);
+        // Make into Arc<Mutex<>> to allow for concurrent access
+        let pixel_buffer = Arc::new(Mutex::new(Vec::with_capacity((height * width) as usize)));
+        // Note: pixel_buffer.fill() does not work here
         for _ in 0..(height * width) {
-            pixel_buffer.push(LedColor::zero().into());
+            pixel_buffer.lock().unwrap().push(LedColor::zero().into());
         }
+
+        assert_eq!(
+            pixel_buffer.lock().unwrap().len(),
+            (height * width) as usize
+        );
 
         Self {
-            height,
             width,
+            height,
             pixel_buffer,
-            window,
         }
-    }
-
-    pub(crate) fn set_refresh_rate(&mut self, rate: std::time::Duration) {
-        self.window.limit_update_rate(Some(rate));
-    }
-
-
-    pub(crate) fn flush_buffer(&mut self) {
-        self.window
-            .update_with_buffer(
-                &self.pixel_buffer,
-                (self.width) as usize,
-                (self.height) as usize,
-            )
-            .expect("Unable to update window");
-        self.window.update();
     }
 }
 
 impl LedCanvasTrait for LedCanvas {
     fn fill(&mut self, color: &LedColor) {
-        println!("Filling canvas with color: {:?}", color);
-        for pixel in &mut self.pixel_buffer {
+        for pixel in &mut self.pixel_buffer.lock().unwrap().iter_mut() {
             *pixel = (*color).into();
         }
     }
@@ -124,13 +103,11 @@ impl LedCanvasTrait for LedCanvas {
             return;
         }
         let index = (y * self.width as i32 + x) as usize;
-        self.pixel_buffer[index] = (*color).into();
+        self.pixel_buffer.lock().unwrap()[index] = (*color).into();
     }
 
     fn clear(&mut self) {
-        for pixel in &mut self.pixel_buffer {
-            *pixel = LedColor::zero().into();
-        }
+        self.fill(&LedColor::zero())
     }
 
     fn draw_line(&mut self, x0: i32, y0: i32, x1: i32, y1: i32, color: &LedColor) {
