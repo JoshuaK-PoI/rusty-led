@@ -12,9 +12,13 @@ impl LedMatrixOptions {
             hardware_mapping: "regular".to_string(),
         }
     }
-    
+
     pub fn set_cols(&mut self, cols: u32) {
         self.cols = cols;
+    }
+
+    pub fn set_rows(&mut self, rows: u32) {
+        self.rows = rows;
     }
 
     pub fn set_hardware_mapping(&mut self, hardware_mapping: &str) {

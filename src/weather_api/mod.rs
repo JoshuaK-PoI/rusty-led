@@ -7,7 +7,10 @@ use crate::{
 };
 
 pub(crate) mod api;
+pub(crate) mod bitmaps;
+pub(crate) mod canvas;
 
+use bitmaps::*;
 use serde::Deserialize;
 
 #[derive(Deserialize, Debug)]
@@ -115,49 +118,36 @@ impl Into<String> for WeatherCondition {
     }
 }
 
-const COLORS: [u32; 3] = [
-    0xFFFFFF, // Cloud (white)
-    0xFFFF00, // Sun (yellow)
-    0x0000FF, // Rain (blue)
-];
-
-pub(crate) fn weather_code_to_image(
-    canvas: &mut LedCanvas,
-    x: i32,
-    y: i32,
-    condition: WeatherCondition,
-) {
+pub(crate) fn weather_code_bitmap<'a>(condition: WeatherCondition) -> &'a [u32] {
     match condition {
-        WeatherCondition::ClearSky => {
-            canvas.draw_circle(x + 6, y + 6, 5, &led_color!(COLORS[1]));
-        }
-        WeatherCondition::MainlyClear => todo!("Mainly Clear"),
-        WeatherCondition::PartlyCloudy => todo!("Partly Cloudy"),
-        WeatherCondition::Overcast => todo!("Overcast"),
-        WeatherCondition::Fog => todo!("Fog"),
-        WeatherCondition::RimeFog => todo!("Rime Fog"),
-        WeatherCondition::DrizzleLight => todo!("Drizzle Light"),
-        WeatherCondition::Unknown => todo!(),
-        WeatherCondition::DrizzleModerate => todo!(),
-        WeatherCondition::DrizzleDense => todo!(),
-        WeatherCondition::FreezingDrizzleLight => todo!(),
-        WeatherCondition::FreezingDrizzleDense => todo!(),
-        WeatherCondition::RainSlight => todo!(),
-        WeatherCondition::RainModerate => todo!(),
-        WeatherCondition::RainHeavy => todo!(),
-        WeatherCondition::FreezingRainLight => todo!(),
-        WeatherCondition::FreezingRainHeavy => todo!(),
-        WeatherCondition::SnowFallSlight => todo!(),
-        WeatherCondition::SnowFallModerate => todo!(),
-        WeatherCondition::SnowFallHeavy => todo!(),
-        WeatherCondition::SnowGrains => todo!(),
-        WeatherCondition::RainShowersSlight => todo!(),
-        WeatherCondition::RainShowersModerate => todo!(),
-        WeatherCondition::RainShowersViolent => todo!(),
-        WeatherCondition::SnowShowersSlight => todo!(),
-        WeatherCondition::SnowShowersHeavy => todo!(),
-        WeatherCondition::ThunderstormSlight => todo!(),
-        WeatherCondition::ThunderstormModerate => todo!(),
-        WeatherCondition::ThunderstormHeavy => todo!(),
+        WeatherCondition::ClearSky => &bitmaps::CLEAR_SKY,
+        WeatherCondition::MainlyClear => &bitmaps::MAINLY_CLEAR,
+        WeatherCondition::PartlyCloudy => &bitmaps::PARTLY_CLOUDY,
+        WeatherCondition::Overcast => &bitmaps::OVERCAST,
+        WeatherCondition::Fog => &bitmaps::FOG,
+        WeatherCondition::RimeFog => &bitmaps::RIME_FOG,
+        WeatherCondition::DrizzleLight => &bitmaps::DRIZZLE_LIGHT,
+        WeatherCondition::Unknown => &bitmaps::UNKNOWN,
+        WeatherCondition::DrizzleModerate => &bitmaps::DRIZZLE_MODERATE,
+        WeatherCondition::DrizzleDense => &bitmaps::DRIZZLE_DENSE,
+        WeatherCondition::FreezingDrizzleLight => &bitmaps::FREEZING_DRIZZLE_LIGHT,
+        WeatherCondition::FreezingDrizzleDense => &bitmaps::FREEZING_DRIZZLE_DENSE,
+        WeatherCondition::RainSlight => &bitmaps::RAIN_SLIGHT,
+        WeatherCondition::RainModerate => &bitmaps::RAIN_MODERATE,
+        WeatherCondition::RainHeavy => &bitmaps::RAIN_HEAVY,
+        WeatherCondition::FreezingRainLight => &bitmaps::FREEZING_RAIN_LIGHT,
+        WeatherCondition::FreezingRainHeavy => &bitmaps::FREEZING_RAIN_HEAVY,
+        WeatherCondition::SnowFallSlight => &bitmaps::SNOW_FALL_SLIGHT,
+        WeatherCondition::SnowFallModerate => &bitmaps::SNOW_FALL_MODERATE,
+        WeatherCondition::SnowFallHeavy => &bitmaps::SNOW_FALL_HEAVY,
+        WeatherCondition::SnowGrains => &bitmaps::SNOW_GRAINS,
+        WeatherCondition::RainShowersSlight => &bitmaps::RAIN_SHOWERS_SLIGHT,
+        WeatherCondition::RainShowersModerate => &bitmaps::RAIN_SHOWERS_MODERATE,
+        WeatherCondition::RainShowersViolent => &bitmaps::RAIN_SHOWERS_VIOLENT,
+        WeatherCondition::SnowShowersSlight => &bitmaps::SNOW_SHOWERS_SLIGHT,
+        WeatherCondition::SnowShowersHeavy => &bitmaps::SNOW_SHOWERS_HEAVY,
+        WeatherCondition::ThunderstormSlight => &bitmaps::THUNDERSTORM_SLIGHT,
+        WeatherCondition::ThunderstormModerate => &bitmaps::THUNDERSTORM_MODERATE,
+        WeatherCondition::ThunderstormHeavy => &bitmaps::THUNDERSTORM_HEAVY,
     }
 }

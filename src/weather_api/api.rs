@@ -40,6 +40,7 @@ pub(crate) struct Current {
     pub(crate) weather_code: usize,
 }
 
+#[cfg(not(feature = "mock"))]
 pub(crate) fn get_api_details() -> Result<WeatherApiResponse> {
     let url = "https://api.open-meteo.com/v1/forecast";
 
@@ -63,6 +64,39 @@ pub(crate) fn get_api_details() -> Result<WeatherApiResponse> {
         ])
         .send()?
         .text()?;
+
+    serde_json::from_str(&body).map_err(Into::into)
+}
+
+#[cfg(feature = "mock")]
+pub(crate) fn get_api_details() -> Result<WeatherApiResponse> {
+    let body = r#"{
+        "latitude": 51.5074,
+        "longitude": 0.1278,
+        "generationtime_ms": 0.0024892583952,
+        "utc_offset_seconds": 3600,
+        "timezone": "Europe/London",
+        "timezone_abbreviation": "BST",
+        "elevation": 0,
+        "current_units": {
+            "time": "s",
+            "interval": "s",
+            "temperature_2m": "°C",
+            "relative_humidity_2m": "%",
+            "wind_speed_10m": "m/s",
+            "wind_direction_10m": "°",
+            "weather_code": ""
+        },
+        "current": {
+            "time": "2021-07-20T14:00:00Z",
+            "interval": 0,
+            "temperature_2m": 20.3,
+            "relative_humidity_2m": 60,
+            "wind_speed_10m": 3.6,
+            "wind_direction_10m": 245,
+            "weather_code": 0
+        }
+    }"#;
 
     serde_json::from_str(&body).map_err(Into::into)
 }

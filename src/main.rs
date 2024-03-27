@@ -68,23 +68,8 @@ fn start_draw_loop(mut canvas: LedCanvas) {
 
             canvas.draw_text(&font_lg, time.as_str(), 18, 0, &color, 0, false);
 
-            if now.second() % 30 > 14 {
-                canvas.draw_text(
-                    &font_sm,
-                    format!(
-                        "{}{}",
-                        weather.current.temperature_2m, weather.current_units.temperature_2m
-                    )
-                    .as_str(),
-                    2,
-                    18,
-                    &color,
-                    0,
-                    false,
-                );
-            } else {
-                canvas.draw_text(&font_sm, date.as_str(), 2, 18, &color, 0, false);
-            }
+            weather_api::canvas::draw_weather(&mut canvas, &font_sm, &weather, 1, 33, &color);
+            canvas.draw_text(&font_sm, date.as_str(), 2, 18, &color, 0, false);
 
             if now.second() != 0 {
                 canvas.draw_line(2, 14, 2 + now.second() as i32, 14, &color);
@@ -128,6 +113,7 @@ fn start_window_polling(
 pub(crate) fn setup() -> LedCanvas {
     let mut options = LedMatrixOptions::new();
     options.set_cols(64);
+    options.set_rows(64);
     options.set_hardware_mapping("adafruit-hat");
 
     let mut rt_options = LedRuntimeOptions::new();
