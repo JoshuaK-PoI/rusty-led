@@ -16,6 +16,38 @@ pub(crate) struct WeatherApiResponse {
     pub(crate) current: Current,
 }
 
+impl WeatherApiResponse {
+    pub(crate) fn default() -> WeatherApiResponse {
+        WeatherApiResponse {
+            latitude: 0.0,
+            longitude: 0.0,
+            generationtime_ms: 0.0,
+            utc_offset_seconds: 0,
+            timezone: "".to_string(),
+            timezone_abbreviation: "".to_string(),
+            elevation: 0.0,
+            current_units: CurrentUnits {
+                time: "".to_string(),
+                interval: "".to_string(),
+                temperature_2m: "".to_string(),
+                relative_humidity_2m: "".to_string(),
+                wind_speed_10m: "".to_string(),
+                wind_direction_10m: "".to_string(),
+                weather_code: "".to_string(),
+            },
+            current: Current {
+                time: "".to_string(),
+                interval: 0,
+                temperature_2m: 0.0,
+                relative_humidity_2m: 0.0,
+                wind_speed_10m: 0.0,
+                wind_direction_10m: 0,
+                weather_code: 0,
+            },
+        }
+    }
+}
+
 #[derive(Deserialize, Debug)]
 #[allow(dead_code)]
 pub(crate) struct CurrentUnits {
@@ -40,10 +72,10 @@ pub(crate) struct Current {
     pub(crate) weather_code: usize,
 }
 
+const URL: &str = "https://api.open-meteo.com/v1/forecast";
+
 #[cfg(not(feature = "mock"))]
 pub(crate) fn get_api_details() -> Result<WeatherApiResponse> {
-    let url = "https://api.open-meteo.com/v1/forecast";
-
     let latitude = dotenv::var("LOCATION_LAT").expect("LOCATION_LAT must be set");
     let longitude = dotenv::var("LOCATION_LON").expect("LOCATION_LON must be set");
 
@@ -56,7 +88,7 @@ pub(crate) fn get_api_details() -> Result<WeatherApiResponse> {
     ];
 
     let body = Client::new()
-        .get(url)
+        .get(URL)
         .query(&[
             ("latitude", latitude),
             ("longitude", longitude),
