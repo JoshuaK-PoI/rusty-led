@@ -1,3 +1,9 @@
+#[cfg(target_os = "linux")]
+use rpi_led_matrix::{
+    LedCanvas, LedColor, LedFont
+};
+
+#[cfg(any(target_os = "windows", target_os = "macos"))]
 use crate::simulator::{
     led_canvas::{LedCanvas, LedCanvasTrait, LedFont},
     LedColor,
@@ -92,7 +98,11 @@ fn draw_wind_direction(canvas: &mut LedCanvas, x: i32, y: i32, angle: i32) {
 fn draw_pixels(canvas: &mut LedCanvas, mut x: i32, mut y: i32, width: i32, pixels: &'static [u32]) {
     let max_x = x + width;
     for pixel in pixels {
-        canvas.set(x, y, &(Into::<LedColor>::into(*pixel)));
+        canvas.set(x, y, &(LedColor { 
+            red: (*pixel >> 16) as u8,
+            green: (*pixel >> 8) as u8,
+            blue: *pixel as u8
+        }));
         x += 1;
         if x == max_x {
             x = x - width;
